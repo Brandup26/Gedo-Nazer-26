@@ -140,10 +140,7 @@
           border-radius: 24px; margin-bottom: 14px; display: flex; padding: 18px; gap: 14px; align-items: center;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: 1px solid var(--card-border); position: relative; overflow: hidden; 
         }
-        /* تعديل خاص لصور العروض */
-        .food-card.offer-item { flex-direction: column; padding: 10px; }
-        .food-card.offer-item img { width: 100%; height: auto; object-fit: contain; border-radius: 15px; margin-bottom: 10px; }
-
+        
         .food-card::before { content: ''; position: absolute; top: 0; right: 0; width: 4.5px; height: 100%; background: var(--desc-text); opacity: 0.8; }
         .food-info { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; width: 100%; }
         .food-name { font-weight: 800; font-size: 1.18rem; color: var(--card-text); margin-bottom: 6px; }
@@ -154,6 +151,10 @@
         
         .added-notice { position: absolute; left: 48px; background: var(--success); color: #ffffff; font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; opacity: 0; transform: translateY(8px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
         .added-notice.show { opacity: 1; transform: translateY(0); }
+
+        /* تعديلات العروض */
+        .food-card.offer-item { flex-direction: column; padding: 10px; }
+        .food-card.offer-item img { width: 100%; height: auto; max-height: 250px; object-fit: cover; border-radius: 15px; margin-bottom: 10px; }
 
         .fly-item { position: fixed; z-index: 9999; pointer-events: none; color: var(--accent); font-size: 24px; transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
 
@@ -413,7 +414,7 @@
                 
                 return `
                 <div class="food-card ${isOffer ? 'offer-item' : ''}">
-                    ${isOffer ? `<img src="${imagePath}" onerror="this.onerror=null; this.style.display='none';">` : ''}
+                    ${isOffer ? `<img src="${imagePath}" onerror="this.style.display='none';">` : ''}
                     <div class="food-info">
                         <span class="food-name">${item.name}</span>
                         <div class="price-row">
