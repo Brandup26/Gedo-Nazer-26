@@ -147,6 +147,7 @@
         .food-card::before { content: ''; position: absolute; top: 0; right: 0; width: 4.5px; height: 100%; background: var(--desc-text); opacity: 0.8; }
         .food-info { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; width: 100%; }
         .food-name { font-weight: 800; font-size: 1.18rem; color: var(--card-text); margin-bottom: 6px; }
+        .food-desc { font-size: 0.85rem; color: var(--card-subtext); margin-bottom: 6px; font-weight: 600; opacity: 0.9; }
         .price-row { display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 4px; }
         .food-price { font-weight: 800; color: var(--accent); font-size: 1.18rem; }
         .add-btn { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 6px 14px var(--accent-glow); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -356,13 +357,14 @@
                     const col = parseCSVLine(lines[i]);
                     let categoryName = col[0]?.replace(/^["']|["']$/g, '').trim();
                     let itemName = col[1]?.replace(/^["']|["']$/g, '').trim();
+                    let descText = col[2]?.replace(/^["']|["']$/g, '').trim();
                     let priceBig = col[3]?.replace(/^["']|["']$/g, '').trim();
                     let priceMedium = col[4]?.replace(/^["']|["']$/g, '').trim();
                     let priceSmall = col[5]?.replace(/^["']|["']$/g, '').trim();
                     let priceNormal = col[6]?.replace(/^["']|["']$/g, '').trim();
                     
                     if(itemName) {
-                        menuData.push({ category: categoryName, name: itemName, priceBig: priceBig, priceMedium: priceMedium, priceSmall: priceSmall, priceNormal: priceNormal });
+                        menuData.push({ category: categoryName, name: itemName, description: descText, priceBig: priceBig, priceMedium: priceMedium, priceSmall: priceSmall, priceNormal: priceNormal });
                     }
                 }
                 preloadImages(menuData); renderNav();
@@ -408,6 +410,7 @@
                         ${item.priceSmall ? `<span class="food-price" style="font-size:0.88rem; color:var(--card-subtext)">صغير: ${item.priceSmall} ج.م</span>` : ''}
                     </div>`;
 
+                const isFirstCat = (cat === menuData[0]?.category);
                 const imagePath = `${IMAGES_PATH}${item.name}.jpg`;
                 
                 return `
@@ -415,10 +418,11 @@
                     <img src="${imagePath}" class="full-img" onerror="this.onerror=null; this.style.display='none';">
                     <div class="food-info">
                         <span class="food-name">${item.name}</span>
+                        ${item.description ? `<span class="food-desc">${item.description}</span>` : ''}
                         <div class="price-row">
                             ${displayPriceHtml}
                             <span class="added-notice">تم الطلب ✔️</span>
-                            <button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>
+                            ${!isFirstCat ? `<button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>` : ''}
                         </div>
                     </div>
                 </div>
