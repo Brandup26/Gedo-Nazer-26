@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jedo-nazir-v3';
+const CACHE_NAME = 'jedo-nazir-v4';
 self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
 self.addEventListener('activate', (e) => {
     e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => caches.delete(k)))));
