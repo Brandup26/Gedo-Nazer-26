@@ -53,54 +53,27 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; transition: background 0.3s, color 0.3s, border-color 0.3s, box-shadow 0.3s; }
         body { background-color: var(--bg); color: var(--main-text); line-height: 1.6; overflow-x: hidden; }
 
-        #splash-screen {
-          position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-          background: var(--splash-bg); z-index: 9999;
-          display: flex; justify-content: center; align-items: center;
-          transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1);
-        }
+        #splash-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--splash-bg); z-index: 9999; display: flex; justify-content: center; align-items: center; transition: transform 0.8s cubic-bezier(0.85, 0, 0.15, 1); }
         body.dark-mode #splash-screen { background: #0D0A09; }
         .loader-content { text-align: center; position: relative; }
         .logo-wrapper { position: relative; width: 155px; height: 155px; margin: 0 auto 25px auto; }
-        
-        .loader-logo-big {
-          width: 100%; height: 100%; border-radius: 50%;
-          object-fit: cover; box-shadow: 0 15px 45px rgba(181, 132, 80, 0.2);
-          opacity: 0; filter: blur(10px); transform: scale(0.6) rotate(-45deg);
-          animation: luxuryDynamicLogo 1.6s cubic-bezier(0.25, 1.1, 0.5, 1) forwards 0.1s;
-          border: 2px solid var(--desc-text);
-        }
-        .chef-hand-sign {
-          position: absolute; bottom: 5px; left: 5px; font-size: 2.2rem;
-          opacity: 0; transform: scale(0) rotate(30deg);
-          animation: chefSign 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.4s;
-        }
+        .loader-logo-big { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; box-shadow: 0 15px 45px rgba(181, 132, 80, 0.2); opacity: 0; filter: blur(10px); transform: scale(0.6) rotate(-45deg); animation: luxuryDynamicLogo 1.6s cubic-bezier(0.25, 1.1, 0.5, 1) forwards 0.1s; border: 2px solid var(--desc-text); }
+        .chef-hand-sign { position: absolute; bottom: 5px; left: 5px; font-size: 2.2rem; opacity: 0; transform: scale(0) rotate(30deg); animation: chefSign 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards 1.4s; }
         .loader-text, .loader-slogan, .loading-container { opacity: 0; transform: translateY(20px); }
-        .loader-text { 
-          font-weight: 800; color: var(--main-text); font-size: 2.3rem; margin-bottom: 4px; 
-          animation: cinematicText 1s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.8s;
-        }
+        .loader-text { font-weight: 800; color: var(--main-text); font-size: 2.3rem; margin-bottom: 4px; animation: cinematicText 1s cubic-bezier(0.25, 1, 0.5, 1) forwards 0.8s; }
         body.dark-mode .loader-text { color: #FFF; }
         .loader-slogan { font-size: 1.2rem; color: var(--desc-text); font-weight: 700; animation: cinematicText 1s cubic-bezier(0.25, 1, 0.5, 1) forwards 1s; }
-        
         .loading-container { margin: 25px auto 0 auto; width: 160px; animation: cinematicText 1s cubic-bezier(0.25, 1, 0.5, 1) forwards 1.2s; }
         .loading-bar { height: 5px; background: rgba(181, 132, 80, 0.15); border-radius: 10px; overflow: hidden; position: relative; }
         .loading-bar span { display: block; width: 0; height: 100%; background: var(--accent); box-shadow: 0 0 10px var(--accent-glow); transition: width 0.05s linear; }
-        
         .loading-percentage { font-size: 1rem; font-weight: 800; color: var(--main-text); margin-top: 8px; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .loading-percentage span { color: var(--desc-text); font-size: 1.1rem; }
-
         @keyframes luxuryDynamicLogo { to { opacity: 1; filter: blur(0); transform: scale(1) rotate(0deg); box-shadow: 0 20px 40px var(--accent-glow); } }
         @keyframes chefSign { 0% { opacity: 0; transform: scale(0) rotate(30deg); } 100% { opacity: 1; transform: scale(1) rotate(0deg); } }
         @keyframes cinematicText { to { opacity: 1; transform: translateY(0); } }
         .splash-hidden { transform: translateY(-100%); pointer-events: none; }
 
-        .sticky-wrapper {
-          position: -webkit-sticky; position: sticky; top: 0; z-index: 1000;
-          background: var(--header-bg); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
-          padding-top: calc(2px + env(safe-area-inset-top, 0px)); border-bottom: 1px solid var(--card-border);
-        }
-
+        .sticky-wrapper { position: -webkit-sticky; position: sticky; top: 0; z-index: 1000; background: var(--header-bg); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05); padding-top: calc(2px + env(safe-area-inset-top, 0px)); border-bottom: 1px solid var(--card-border); }
         header { display: flex; flex-direction: column; align-items: center; padding: 2px 0 4px 0; }
         .header-top { width: 100%; display: flex; align-items: center; justify-content: center; position: relative; margin-bottom: 4px; }
         .header-logo-container { width: 95px; height: 95px; border-radius: 50%; background: var(--bg); padding: 2px; box-shadow: 0 8px 25px rgba(0,0,0,0.08); overflow: hidden; border: 2px solid var(--desc-text); }
@@ -108,7 +81,6 @@
         .header-brand-info { text-align: center; margin-bottom: 6px; }
         .brand-title { font-size: 1.6rem; font-weight: 800; color: var(--main-text); margin: 0; }
         .brand-slogan { font-size: 0.95rem; color: var(--desc-text); font-weight: 700; margin-top: -2px; letter-spacing: 0.5px; }
-
         .theme-toggle { position: absolute; right: 16px; top: 12px; width: 42px; height: 42px; background: rgba(0,0,0,0.02); border-radius: 14px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.15rem; border: 1px solid var(--card-border); color: var(--desc-text); box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
         body.dark-mode .theme-toggle { background: rgba(255,255,255,0.03); }
         .cart-trigger-container { position: absolute; left: 16px; top: 12px; }
@@ -119,7 +91,6 @@
         @keyframes cartShake { 0%, 100% { transform: scale(1) rotate(0deg); } 20%, 60% { transform: scale(1.25) rotate(-12deg); } 40%, 80% { transform: scale(1.25) rotate(12deg); } }
         .badge { position: absolute; top: -6px; right: -6px; background: var(--accent); color: white; font-size: 10px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg); transform: scale(0); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 8px var(--accent-glow); }
         .badge.show { transform: scale(1); }
-        
         .header-bottom-addr { text-align: center; width: 100%; padding: 8px 16px; border-top: 1px solid var(--card-border); display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; background: rgba(255,255,255,0.2); }
         body.dark-mode .header-bottom-addr { background: rgba(0,0,0,0.2); }
         .addr-tag { color: var(--desc-text); font-weight: 800; font-size: 0.85rem; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
@@ -135,15 +106,9 @@
         .cat-item.active span { color: var(--desc-text); font-weight: 800; opacity: 1; }
 
         .menu-list { padding: 14px; max-width: 600px; margin: 10px auto auto auto; }
-        .food-card { 
-          background: var(--card-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-          border-radius: 24px; margin-bottom: 14px; display: flex; padding: 18px; gap: 14px; align-items: center;
-          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: 1px solid var(--card-border); position: relative; overflow: hidden; 
-        }
-        /* تعديل خاص لصور العروض */
-        .food-card.offer-item { flex-direction: column; padding: 10px; }
+        .food-card { background: var(--card-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-radius: 24px; margin-bottom: 14px; display: flex; padding: 18px; gap: 14px; align-items: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: 1px solid var(--card-border); position: relative; overflow: hidden; }
+        .food-card.offer-item { flex-direction: column; padding: 15px; }
         .food-card.offer-item img { width: 100%; height: auto; object-fit: contain; border-radius: 15px; margin-bottom: 10px; }
-
         .food-card::before { content: ''; position: absolute; top: 0; right: 0; width: 4.5px; height: 100%; background: var(--desc-text); opacity: 0.8; }
         .food-info { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; width: 100%; }
         .food-name { font-weight: 800; font-size: 1.18rem; color: var(--card-text); margin-bottom: 6px; }
@@ -151,55 +116,23 @@
         .food-price { font-weight: 800; color: var(--accent); font-size: 1.18rem; }
         .add-btn { background: var(--accent); color: white; border: none; width: 38px; height: 38px; border-radius: 50%; font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 6px 14px var(--accent-glow); transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .add-btn:active { transform: scale(0.9); }
-        
         .added-notice { position: absolute; left: 48px; background: var(--success); color: #ffffff; font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; opacity: 0; transform: translateY(8px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
         .added-notice.show { opacity: 1; transform: translateY(0); }
-
-        .fly-item { position: fixed; z-index: 9999; pointer-events: none; color: var(--accent); font-size: 24px; transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
-
-        #ios-prompt {
-          position: fixed; bottom: 20px; left: 20px; right: 20px;
-          background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--desc-text);
-          border-radius: 22px; padding: 16px 20px; z-index: 99999;
-          display: none; align-items: center; gap: 15px;
-          box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
-          animation: slideUpPrompt 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        #ios-prompt { position: fixed; bottom: 20px; left: 20px; right: 20px; background: var(--card-bg); backdrop-filter: blur(20px); border: 1px solid var(--desc-text); border-radius: 22px; padding: 16px 20px; z-index: 99999; display: none; align-items: center; gap: 15px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1); animation: slideUpPrompt 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes slideUpPrompt { from { transform: translateY(150px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .ios-prompt-text { flex: 1; font-size: 0.88rem; font-weight: 700; color: var(--main-text); line-height: 1.5; }
         .ios-prompt-icon { width: 45px; height: 45px; border-radius: 12px; object-fit: cover; border: 1px solid var(--desc-text); }
         .ios-close-btn { background: none; border: none; color: var(--desc-text); font-weight: 800; font-size: 1.2rem; cursor: pointer; padding: 0 5px; }
-
         .restaurant-footer { padding: 35px 20px; text-align: center; background: linear-gradient(to bottom, rgba(0,0,0,0.02), rgba(0,0,0,0.05)); border-top: 1px solid var(--card-border); margin-top: 30px; }
-        body.dark-mode .restaurant-footer { background: linear-gradient(to bottom, rgba(255,255,255,0.01), rgba(255,255,255,0.03)); }
         .footer-phones { margin-bottom: 20px; }
-        .footer-phones span { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 8px; font-weight: 800; font-size: 0.95rem; color: var(--main-text); opacity: 0.9; }
-        .footer-phones a { display: inline-block; color: var(--accent); text-decoration: none; font-weight: 800; font-size: 1.3rem; margin: 6px 12px; background: var(--card-bg); padding: 6px 16px; border-radius: 14px; border: 1px solid var(--card-border); box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .footer-rights { font-size: 0.8rem; color: var(--main-text); opacity: 0.5; font-weight: 600; margin-bottom: 6px; }
-        .dev-credit { font-size: 0.85rem; color: var(--main-text); opacity: 0.7; font-weight: 700; margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 15px; }
-        .dev-credit a { color: var(--desc-text); text-decoration: none; display: inline-block; margin-top: 5px; font-weight: 800; background: var(--card-bg); padding: 4px 12px; border-radius: 8px; border: 1px solid var(--card-border); }
-
+        .footer-phones a { display: inline-block; color: var(--accent); text-decoration: none; font-weight: 800; font-size: 1.3rem; margin: 6px 12px; background: var(--card-bg); padding: 6px 16px; border-radius: 14px; border: 1px solid var(--card-border); }
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 2000; display: none; justify-content: center; align-items: flex-end; }
-        body.dark-mode .modal { background: rgba(0, 0, 0, 0.7); }
         .modal-content { background: var(--bg); width: 100%; max-width: 500px; padding: 25px; border-radius: 30px 30px 0 0; max-height: 90vh; overflow-y: auto; color: var(--main-text); box-shadow: 0 -15px 40px rgba(0,0,0,0.1); border-top: 4px solid var(--desc-text); }
-        .modal-content h2, .modal-content h3 { font-weight: 800; display: flex; align-items: center; gap: 8px; }
-        .cart-item-card { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--card-bg); border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--card-border); }
-        .cart-item-info { flex: 1; }
-        .cart-item-name { font-weight: 700; font-size: 1rem; color: var(--card-text); }
-        .cart-item-price { color: var(--accent); font-weight: 800; font-size: 0.95rem; display: block; margin-top: 3px; }
-        .remove-btn { color: var(--accent); font-weight: 800; font-size: 0.85rem; cursor: pointer; padding: 6px 12px; background: rgba(169, 35, 26, 0.08); border-radius: 10px; }
-        .user-fields { margin-top: 20px; }
         .user-fields input { background: var(--card-bg); border: 1px solid var(--card-border); padding: 16px; border-radius: 14px; width: 100%; margin-bottom: 12px; color: var(--card-text); text-align: right; font-weight: 600; font-size: 0.95rem; }
-        .user-fields input:focus { border-color: var(--desc-text); outline: none; box-shadow: 0 0 10px var(--gold-glow); }
-        .submit-btn { background: var(--accent); color: white; border: none; padding: 18px; border-radius: 16px; width: 100%; font-weight: 800; cursor: pointer; font-size: 1.05rem; box-shadow: 0 6px 15px var(--accent-glow); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-
-        .size-selector-box { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
-        .size-option-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; color: var(--card-text); font-weight: 700; font-size: 1rem; }
-        .size-title { color: var(--accent); font-weight: 800; }
+        .submit-btn { background: var(--accent); color: white; border: none; padding: 18px; border-radius: 16px; width: 100%; font-weight: 800; cursor: pointer; font-size: 1.05rem; box-shadow: 0 6px 15px var(--accent-glow); margin-top: 10px; }
     </style>
 </head>
 <body>
-
     <div id="splash-screen">
         <div class="loader-content">
             <div class="logo-wrapper">
@@ -258,10 +191,6 @@
             <a href="tel:01205287669">01205287669 <i class="fa-solid fa-phone" style="font-size:0.85rem; margin-right:4px;"></i></a>
         </div>
         <p class="footer-rights">جميع الحقوق محفوظة لـ جدو نظير 2026 ©</p>
-        <div class="dev-credit">
-            Designed by eng / Anas Gaber shehata
-            <a href="tel:01003800314"><i class="fa-solid fa-phone-flip"></i> 01003800314</a>
-        </div>
     </footer>
 
     <div class="modal" id="sizeModal" onclick="if(event.target==this) closeSizeModal()">
@@ -369,16 +298,6 @@
                 startSplashAnimation(() => {
                     document.getElementById('splash-screen').classList.add('splash-hidden');
                     checkIosPrompt();
-                    if ('serviceWorker' in navigator) { 
-                        navigator.serviceWorker.register('sw.js').then(reg => {
-                            reg.addEventListener('updatefound', () => {
-                                const newWorker = reg.installing;
-                                newWorker.addEventListener('statechange', () => {
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { window.location.reload(); }
-                                });
-                            });
-                        }).catch(err => console.log(err)); 
-                    }
                 });
             } catch (e) { document.getElementById('splash-screen').classList.add('splash-hidden'); }
         }
@@ -413,7 +332,7 @@
                 
                 return `
                 <div class="food-card ${isOffer ? 'offer-item' : ''}">
-                    ${isOffer ? `<img src="${imagePath}" style="width:100%; height:auto; object-fit:contain; border-radius:15px; margin-bottom:10px;" onerror="this.onerror=null; this.style.display='none';">` : ''}
+                    ${isOffer ? `<img src="${imagePath}" style="width:100%; height:auto; object-fit:contain; border-radius:15px; margin-bottom:10px;" onerror="this.style.display='none'">` : ''}
                     <div class="food-info">
                         <span class="food-name">${item.name}</span>
                         <div class="price-row">
