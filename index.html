@@ -413,7 +413,7 @@
                 
                 return `
                 <div class="food-card ${isOffer ? 'offer-item' : ''}">
-                    <img src="${imagePath}" onerror="this.onerror=null; this.style.display='none';">
+                    ${isOffer ? `<img src="${imagePath}" style="width:100%; height:auto; object-fit:contain; border-radius:15px; margin-bottom:10px;" onerror="this.onerror=null; this.style.display='none';">` : ''}
                     <div class="food-info">
                         <span class="food-name">${item.name}</span>
                         <div class="price-row">
