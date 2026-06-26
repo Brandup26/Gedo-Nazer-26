@@ -140,9 +140,9 @@
           border-radius: 24px; margin-bottom: 14px; display: flex; padding: 18px; gap: 14px; align-items: center;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: 1px solid var(--card-border); position: relative; overflow: hidden; 
         }
-        /* تعديل خاص لصور العروض */
-        .food-card.offer-item { flex-direction: column; padding: 10px; }
-        .food-card.offer-item img { width: 100%; height: auto; object-fit: contain; border-radius: 15px; margin-bottom: 10px; }
+        /* تعديل خاص لصور الأصناف لتكون كاملة */
+        .food-card { flex-direction: column; padding: 10px; }
+        .food-card img.full-img { width: 100%; height: auto; object-fit: contain; border-radius: 15px; margin-bottom: 10px; display: block; }
 
         .food-card::before { content: ''; position: absolute; top: 0; right: 0; width: 4.5px; height: 100%; background: var(--desc-text); opacity: 0.8; }
         .food-info { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; width: 100%; }
@@ -408,18 +408,17 @@
                         ${item.priceSmall ? `<span class="food-price" style="font-size:0.88rem; color:var(--card-subtext)">صغير: ${item.priceSmall} ج.م</span>` : ''}
                     </div>`;
 
-                const isOffer = (cat === "العروض");
                 const imagePath = `${IMAGES_PATH}${item.name}.jpg`;
                 
                 return `
-                <div class="food-card ${isOffer ? 'offer-item' : ''}">
-                    <img src="${imagePath}" onerror="this.onerror=null; this.style.display='none';">
+                <div class="food-card">
+                    <img src="${imagePath}" class="full-img" onerror="this.onerror=null; this.style.display='none';">
                     <div class="food-info">
                         <span class="food-name">${item.name}</span>
                         <div class="price-row">
                             ${displayPriceHtml}
                             <span class="added-notice">تم الطلب ✔️</span>
-                            ${!isOffer ? `<button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>` : ''}
+                            <button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>
                         </div>
                     </div>
                 </div>
