@@ -419,7 +419,7 @@
                         <div class="price-row">
                             ${displayPriceHtml}
                             <span class="added-notice">تم الطلب ✔️</span>
-                            <button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>
+                            ${!isOffer ? `<button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>` : ''}
                         </div>
                     </div>
                 </div>
