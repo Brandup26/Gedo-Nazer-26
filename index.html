@@ -95,7 +95,6 @@
         @keyframes cinematicText { to { opacity: 1; transform: translateY(0); } }
         .splash-hidden { transform: translateY(-100%); pointer-events: none; }
 
-        /* تعديل المسافة العلوية هنا */
         .sticky-wrapper {
           position: -webkit-sticky; position: sticky; top: 0; z-index: 1000;
           background: var(--header-bg); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
@@ -143,7 +142,7 @@
         }
         /* تعديل خاص لصور العروض */
         .food-card.offer-item { flex-direction: column; padding: 10px; }
-        .food-card.offer-item img { width: 100%; height: auto; object-fit: contain; border-radius: 15px; }
+        .food-card.offer-item img { width: 100%; height: auto; object-fit: contain; border-radius: 15px; margin-bottom: 10px; }
 
         .food-card::before { content: ''; position: absolute; top: 0; right: 0; width: 4.5px; height: 100%; background: var(--desc-text); opacity: 0.8; }
         .food-info { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; width: 100%; }
@@ -409,11 +408,12 @@
                         ${item.priceSmall ? `<span class="food-price" style="font-size:0.88rem; color:var(--card-subtext)">صغير: ${item.priceSmall} ج.م</span>` : ''}
                     </div>`;
 
-                // تعديل: إذا كان القسم "العروض" نغير التنسيق
                 const isOffer = (cat === "العروض");
+                const imagePath = `${IMAGES_PATH}${item.name}.jpg`;
+                
                 return `
                 <div class="food-card ${isOffer ? 'offer-item' : ''}">
-                    ${isOffer ? `<img src="${IMAGES_PATH}${item.name}.jpg" onerror="this.style.display='none'">` : ''}
+                    ${isOffer ? `<img src="${imagePath}" onerror="this.onerror=null; this.style.display='none';">` : ''}
                     <div class="food-info">
                         <span class="food-name">${item.name}</span>
                         <div class="price-row">
