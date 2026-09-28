@@ -16,6 +16,11 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- مكتبات Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
           --bg: #F4F1EA; 
@@ -137,13 +142,10 @@
         .menu-list { padding: 14px; max-width: 600px; margin: 10px auto auto auto; }
         .food-card { 
           background: var(--card-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-          border-radius: 24px; margin-bottom: 14px; display: flex; padding: 18px; gap: 14px; align-items: center;
+          border-radius: 24px; margin-bottom: 14px; display: flex; flex-direction: column; padding: 10px;
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); border: 1px solid var(--card-border); position: relative; overflow: hidden; 
         }
-        /* تعديل خاص لصور الأصناف لتكون كاملة */
-        .food-card { flex-direction: column; padding: 10px; }
         .food-card img.full-img { width: 100%; height: auto; object-fit: contain; border-radius: 15px; margin-bottom: 10px; display: block; }
-
         .food-card::before { content: ''; position: absolute; top: 0; right: 0; width: 4.5px; height: 100%; background: var(--desc-text); opacity: 0.8; }
         .food-info { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; width: 100%; }
         .food-name { font-weight: 800; font-size: 1.18rem; color: var(--card-text); margin-bottom: 6px; }
@@ -155,8 +157,6 @@
         
         .added-notice { position: absolute; left: 48px; background: var(--success); color: #ffffff; font-size: 0.75rem; font-weight: 800; padding: 6px 14px; border-radius: 20px; opacity: 0; transform: translateY(8px); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
         .added-notice.show { opacity: 1; transform: translateY(0); }
-
-        .fly-item { position: fixed; z-index: 9999; pointer-events: none; color: var(--accent); font-size: 24px; transition: all 0.6s cubic-bezier(0.19, 1, 0.22, 1); }
 
         #ios-prompt {
           position: fixed; bottom: 20px; left: 20px; right: 20px;
@@ -180,10 +180,11 @@
         .dev-credit { font-size: 0.85rem; color: var(--main-text); opacity: 0.7; font-weight: 700; margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 15px; }
         .dev-credit a { color: var(--desc-text); text-decoration: none; display: inline-block; margin-top: 5px; font-weight: 800; background: var(--card-bg); padding: 4px 12px; border-radius: 8px; border: 1px solid var(--card-border); }
 
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(8px); z-index: 2000; display: none; justify-content: center; align-items: flex-end; }
-        body.dark-mode .modal { background: rgba(0, 0, 0, 0.7); }
-        .modal-content { background: var(--bg); width: 100%; max-width: 500px; padding: 25px; border-radius: 30px 30px 0 0; max-height: 90vh; overflow-y: auto; color: var(--main-text); box-shadow: 0 -15px 40px rgba(0,0,0,0.1); border-top: 4px solid var(--desc-text); }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(8px); z-index: 2000; display: none; justify-content: center; align-items: flex-end; }
+        body.dark-mode .modal { background: rgba(0, 0, 0, 0.75); }
+        .modal-content { background: var(--bg); width: 100%; max-width: 520px; padding: 24px; border-radius: 28px 28px 0 0; max-height: 90vh; overflow-y: auto; color: var(--main-text); box-shadow: 0 -15px 40px rgba(0,0,0,0.15); border-top: 4px solid var(--desc-text); }
         .modal-content h2, .modal-content h3 { font-weight: 800; display: flex; align-items: center; gap: 8px; }
+        
         .cart-item-card { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: var(--card-bg); border-radius: 16px; margin-bottom: 12px; border: 1px solid var(--card-border); }
         .cart-item-info { flex: 1; }
         .cart-item-name { font-weight: 700; font-size: 1rem; color: var(--card-text); }
@@ -197,6 +198,72 @@
         .size-selector-box { display: flex; flex-direction: column; gap: 12px; margin-top: 18px; }
         .size-option-btn { background: var(--card-bg); border: 1px solid var(--card-border); padding: 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; color: var(--card-text); font-weight: 700; font-size: 1rem; }
         .size-title { color: var(--accent); font-weight: 800; }
+
+        /* ستايل لوحة التحكم المتقدمة */
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .3s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #1E7E34; }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .admin-item-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--card-bg); border-radius: 16px; margin-bottom: 10px; border: 1px solid var(--card-border); }
+        .admin-tab-btn { flex: 1; padding: 11px 4px; border-radius: 14px; border: none; font-weight: 800; cursor: pointer; background: rgba(0,0,0,0.04); color: var(--main-text); font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        body.dark-mode .admin-tab-btn { background: rgba(255,255,255,0.07); }
+        .admin-tab-btn.active { background: #E65100; color: #fff; box-shadow: 0 4px 12px rgba(230, 81, 0, 0.3); }
+        .status-banner { border: 2px dashed #1E7E34; border-radius: 18px; padding: 14px; text-align: center; margin-bottom: 15px; }
+        .status-btn { width: 100%; border: none; padding: 12px; border-radius: 14px; color: white; font-weight: 800; font-size: 1rem; cursor: pointer; margin-top: 8px; }
+
+        /* نافذة تسجيل الدخول الإبداعية (Glassmorphic) */
+        .login-dialog {
+            background: var(--card-bg); border-radius: 26px; border: 1px solid var(--card-border);
+            padding: 30px 22px; width: 92%; max-width: 380px; margin: auto; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2); backdrop-filter: blur(25px);
+            animation: modalFadeUp 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalFadeUp { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .login-icon-box {
+            width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 22px;
+            background: linear-gradient(135deg, rgba(181, 132, 80, 0.15), rgba(169, 35, 26, 0.15));
+            border: 2px solid var(--desc-text); display: flex; align-items: center; justify-content: center;
+            font-size: 1.9rem; color: var(--accent); box-shadow: 0 8px 20px var(--gold-glow);
+        }
+        .login-input-wrap {
+            position: relative; margin: 20px 0 15px 0;
+        }
+        .login-input {
+            width: 100%; padding: 15px 44px 15px 16px; border-radius: 16px;
+            border: 1.5px solid var(--card-border); background: var(--bg);
+            color: var(--card-text); font-size: 1.15rem; font-weight: 700; text-align: center; letter-spacing: 4px;
+            outline: none; transition: 0.3s;
+        }
+        .login-input:focus { border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); }
+        .login-input-icon { position: absolute; right: 16px; top: 50%; transform: translateY(-50%); color: var(--desc-text); font-size: 1.1rem; }
+        .login-btn {
+            width: 100%; padding: 15px; border-radius: 16px; border: none;
+            background: linear-gradient(135deg, var(--accent), #7A1710);
+            color: #fff; font-weight: 800; font-size: 1.05rem; cursor: pointer;
+            box-shadow: 0 8px 20px var(--accent-glow); display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .login-btn:active { transform: scale(0.98); }
+
+        /* ستايل كروت الطلبات */
+        .order-card {
+            background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px;
+            padding: 16px; margin-bottom: 14px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border-right: 5px solid var(--desc-text);
+        }
+        .order-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 10px; }
+        .order-time { font-size: 0.8rem; font-weight: 700; color: var(--desc-text); }
+        .order-details-p { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; color: var(--card-text); }
+        .order-items-box { background: rgba(0,0,0,0.03); border-radius: 12px; padding: 10px; margin: 10px 0; font-size: 0.88rem; line-height: 1.6; }
+        body.dark-mode .order-items-box { background: rgba(255,255,255,0.04); }
+        .order-total-price { color: var(--accent); font-weight: 800; font-size: 1.05rem; }
+        .order-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .order-act-btn { flex: 1; padding: 8px; border-radius: 10px; border: none; font-weight: 700; font-size: 0.82rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; }
+
+        .shake-box { animation: shakeError 0.4s ease-in-out; }
+        @keyframes shakeError { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
     </style>
 </head>
 <body>
@@ -263,8 +330,15 @@
             Designed by eng / Anas Gaber shehata
             <a href="tel:01003800314"><i class="fa-solid fa-phone-flip"></i> 01003800314</a>
         </div>
+        
+        <div style="margin-top: 18px;">
+            <button onclick="handleAdminEntryClick()" style="background: linear-gradient(135deg, var(--desc-text), #8A6237); color: white; border: none; padding: 10px 24px; border-radius: 14px; font-weight: 800; cursor: pointer; font-size: 0.95rem; box-shadow: 0 6px 16px rgba(0,0,0,0.12); display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-shield-halved"></i> إدارة المطعم
+            </button>
+        </div>
     </footer>
 
+    <!-- نافذة المقاسات -->
     <div class="modal" id="sizeModal" onclick="if(event.target==this) closeSizeModal()">
         <div class="modal-content">
             <h3 id="sizeModalTitle" style="margin-bottom: 10px; font-weight: 800; color: var(--desc-text);"><i class="fa-solid fa-utensils"></i> اختر الحجم والمقاس</h3>
@@ -272,6 +346,7 @@
         </div>
     </div>
 
+    <!-- نافذة السلة -->
     <div class="modal" id="cartModal" onclick="if(event.target==this) toggleCart(false)">
         <div class="modal-content">
             <h2 style="margin-bottom: 20px; color: var(--desc-text);"><i class="fa-solid fa-cart-flatbed-suitcase"></i> طلباتك</h2>
@@ -289,12 +364,430 @@
         </div>
     </div>
 
+    <!-- نافذة الدخول الانسيابية للإدارة (Creative Password Modal) -->
+    <div class="modal" id="loginModal" style="align-items: center;" onclick="if(event.target==this) closeLoginModal()">
+        <div class="login-dialog" id="loginDialogBox">
+            <div class="login-icon-box">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--card-text); margin-bottom: 4px;">لوحة تحكم الإدارة</h3>
+            <p style="font-size: 0.85rem; color: var(--card-subtext); font-weight: 600;">يرجى إدخال رمز الأمان للتحقق من هويتك</p>
+            
+            <div class="login-input-wrap">
+                <i class="fa-solid fa-key login-input-icon"></i>
+                <input type="password" id="adminPasswordInput" class="login-input" placeholder="••••" maxlength="15" onkeydown="if(event.key==='Enter') submitAdminPassword()">
+            </div>
+
+            <p id="loginErrorMsg" style="color: var(--accent); font-size: 0.85rem; font-weight: 700; display: none; margin-bottom: 12px;">رمز المرور غير صحيح!</p>
+
+            <button class="login-btn" onclick="submitAdminPassword()">
+                <span>دخول للإدارة</span>
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- لوحة تحكم إدارة المطعم والطلبات الكاملة -->
+    <div class="modal" id="adminModal" onclick="if(event.target==this) closeAdminModal()">
+        <div class="modal-content" style="max-height: 88vh;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <h2 style="font-size: 1.25rem; margin:0;"><i class="fa-solid fa-sliders" style="color: var(--desc-text);"></i> إدارة المطعم</h2>
+                <i class="fa-solid fa-xmark" onclick="closeAdminModal()" style="font-size: 1.5rem; cursor:pointer;"></i>
+            </div>
+
+            <!-- أزرار التبويبات الثلاثة -->
+            <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <button class="admin-tab-btn active" id="tabBtnItems" onclick="switchAdminTab('items')"><i class="fa-solid fa-box"></i> حالة الأصناف</button>
+                <button class="admin-tab-btn" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-receipt"></i> سجل الطلبات</button>
+                <button class="admin-tab-btn" id="tabBtnPass" onclick="switchAdminTab('pass')"><i class="fa-solid fa-key"></i> كلمة السر</button>
+            </div>
+
+            <!-- تبويب 1: حالة الأصناف والمطعم -->
+            <div id="adminTabItemsView">
+                <div class="status-banner" id="storeStatusBox">
+                    <b id="storeStatusLabel" style="color: #1E7E34; font-size: 0.95rem;">حالة المطعم الحالية: 🟢 مفتوح واستقبال الطلبات متاح</b>
+                    <button class="status-btn" id="storeToggleBtn" style="background: #C62828;" onclick="toggleStoreStatus()">إغلاق المطعم الآن 🔴</button>
+                </div>
+
+                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                    <button onclick="setAllItems(true)" style="flex:1; padding:12px; background:#1E7E34; color:#fff; border:none; border-radius:14px; font-weight:800; cursor:pointer; font-size: 0.9rem;">تشغيل جميع الأصناف ✔️</button>
+                    <button onclick="setAllItems(false)" style="flex:1; padding:12px; background:#E65100; color:#fff; border:none; border-radius:14px; font-weight:800; cursor:pointer; font-size: 0.9rem;">إيقاف جميع الأصناف 🛑</button>
+                </div>
+
+                <div id="adminItemsList" style="max-height: 42vh; overflow-y:auto; padding-left: 2px;"></div>
+            </div>
+
+            <!-- تبويب 2: سجل الطلبات -->
+            <div id="adminTabOrdersView" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <span style="font-weight: 800; font-size: 0.95rem; color: var(--card-text);" id="ordersCountBadge">0 طلبات مسجلة</span>
+                    <button onclick="clearAllOrders()" style="background: rgba(169, 35, 26, 0.1); color: var(--accent); border: 1px solid var(--card-border); padding: 6px 14px; border-radius: 10px; font-weight: 800; font-size: 0.8rem; cursor: pointer;">
+                        <i class="fa-solid fa-trash-can"></i> حذف كل السجل
+                    </button>
+                </div>
+                <div id="adminOrdersList" style="max-height: 52vh; overflow-y:auto;">
+                    <p style="text-align: center; color: var(--card-subtext); padding: 30px 0; font-weight: 700;">لا توجد أي طلبات حتى الآن</p>
+                </div>
+            </div>
+
+            <!-- تبويب 3: تغيير كلمة السر بالتحقق الثلاثي -->
+            <div id="adminTabPassView" style="display: none; padding: 10px 4px;">
+                <p style="font-size: 0.88rem; color: var(--card-subtext); margin-bottom: 15px; font-weight: 600;">تنبيه: عند تغيير كلمة السر سيتم تسجيل خروج وإلغاء صلاحية أي أجهزة أخرى على الفور حتى يعيدوا الدخول بكلمة السر الجديدة.</p>
+                <div class="user-fields" style="margin-top:0;">
+                    <input type="password" id="currentPassInput" placeholder="كلمة السر الحالية">
+                    <input type="password" id="newPassInput" placeholder="كلمة السر الجديدة">
+                    <input type="password" id="confirmPassInput" placeholder="تأكيد كلمة السر الجديدة">
+                </div>
+                <button class="submit-btn" onclick="saveNewPassword()"><i class="fa-solid fa-check-double"></i> حفظ وتحديث كلمة السر</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // إعدادات وتوصيل Firebase Realtime Database
+        const firebaseConfig = {
+            databaseURL: "https://gedo-nazeer-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+
+        let storeOpen = true;
+        let disabledItems = {};
+        let adminPass = "1234";
+        let isOwnerSession = false;
+        let ordersData = {};
+        let isInitialLoad = true;
+
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMPmtTzw4PXca6LfoHjkYbEXXF1Q0NQrbsLf0wNowyofnEwFX470aRMiu6O7wpFlK3WFULBOjV4L85/pub?output=csv&_cb=' + Date.now();
         const IMAGES_PATH = "./images/"; 
         let menuData = [], cart = [];
         let currentTotal = 0;
-        let lastClickButton = null; 
+        let lastClickButton = null;
+
+        // التحقق من صلاحية صاحب المطعم الحالية
+        function checkOwnerSession() {
+            const savedSessionPass = localStorage.getItem('gedo_owner_session_pass');
+            if (savedSessionPass && savedSessionPass === adminPass) {
+                isOwnerSession = true;
+            } else {
+                isOwnerSession = false;
+                // إذا تم تغيير كلمة السر من جهاز آخر يتم إخراجه فوراً
+                if (document.getElementById('adminModal').style.display === 'flex') {
+                    closeAdminModal();
+                    alert("تم تغيير كلمة سر الإدارة من جهاز آخر. يرجى إعادة تسجيل الدخول.");
+                }
+            }
+        }
+
+        // الاستماع الفوري لتغييرات Firebase
+        db.ref('settings/storeOpen').on('value', snap => {
+            storeOpen = snap.val() !== false;
+            updateStoreUI();
+            refreshCurrentCategory();
+        });
+
+        db.ref('settings/disabledItems').on('value', snap => {
+            disabledItems = snap.val() || {};
+            refreshCurrentCategory();
+            if (document.getElementById('adminModal').style.display === 'flex') {
+                renderAdminItems();
+            }
+        });
+
+        db.ref('settings/adminPass').on('value', snap => {
+            if (snap.val()) {
+                adminPass = String(snap.val());
+            } else {
+                db.ref('settings/adminPass').set("1234");
+                adminPass = "1234";
+            }
+            checkOwnerSession();
+        });
+
+        // مراقبة الطلبات الجديدة والتنبيه الصوتي والكتابي
+        db.ref('orders').on('value', snap => {
+            ordersData = snap.val() || {};
+            renderOrdersList();
+            
+            // تجاهل التنبيه عند التحميل الأول للصفحة
+            if (isInitialLoad) {
+                isInitialLoad = false;
+                return;
+            }
+
+            // التنبيه لصاحب المطعم فقط
+            if (isOwnerSession) {
+                triggerOwnerAlarm();
+            }
+        });
+
+        // تشغيل صوت الجرس العالي المتكرر لمدة ثانيتين
+        function playHighBellSound() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) return;
+                const ctx = new AudioContext();
+                
+                // نغمتين متتاليتين في الثانية الواحدة مكررة لثانيتين (ترن.. ترن.. ترن.. ترن..)
+                const strikes = [0, 0.45, 0.95, 1.4];
+                strikes.forEach(time => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(880, ctx.currentTime + time); // جرس واضح A5
+                    osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + time + 0.08);
+                    
+                    gain.gain.setValueAtTime(1.0, ctx.currentTime + time);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + time + 0.38);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    
+                    osc.start(ctx.currentTime + time);
+                    osc.stop(ctx.currentTime + time + 0.4);
+                });
+
+                // إيقاف السياق الصوتي بعد انتهاء الثانيتين
+                setTimeout(() => { ctx.close(); }, 2100);
+            } catch (err) {
+                console.log("Audio alert error: ", err);
+            }
+        }
+
+        // إطلاق التنبيه الصوتي والرسالة الكتابية
+        function triggerOwnerAlarm() {
+            // 1. صوت الجرس
+            playHighBellSound();
+
+            // 2. اهتزاز الموبايل
+            if ("vibrate" in navigator) {
+                navigator.vibrate([400, 200, 400, 200, 400]);
+            }
+
+            // 3. إشعار كتابي يظهر في شاشة القفل والإشعارات
+            if ("Notification" in window && Notification.permission === "granted") {
+                const notif = new Notification("طلب جديد - جدو نظير 🛎️", {
+                    body: "تم استلام أوردر جديد الآن في تطبيق جدو نظير، تفقد سجل الطلبات!",
+                    icon: "images/lllogo.jpg",
+                    tag: "new-order-" + Date.now(),
+                    requireInteraction: true
+                });
+                notif.onclick = function() {
+                    window.focus();
+                    handleAdminEntryClick();
+                };
+            }
+        }
+
+        // طلب إذن الإشعارات
+        function requestNotificationPermission() {
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+        }
+
+        function handleAdminEntryClick() {
+            checkOwnerSession();
+            if (isOwnerSession) {
+                switchAdminTab('items');
+                renderAdminItems();
+                document.getElementById('adminModal').style.display = 'flex';
+                history.pushState({ adminOpen: true }, "");
+            } else {
+                document.getElementById('adminPasswordInput').value = '';
+                document.getElementById('loginErrorMsg').style.display = 'none';
+                document.getElementById('loginModal').style.display = 'flex';
+                setTimeout(() => document.getElementById('adminPasswordInput').focus(), 150);
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        function submitAdminPassword() {
+            const val = document.getElementById('adminPasswordInput').value.trim();
+            if (val === adminPass) {
+                localStorage.setItem('gedo_owner_session_pass', val);
+                isOwnerSession = true;
+                requestNotificationPermission();
+                closeLoginModal();
+                switchAdminTab('items');
+                renderAdminItems();
+                document.getElementById('adminModal').style.display = 'flex';
+                history.pushState({ adminOpen: true }, "");
+            } else {
+                const box = document.getElementById('loginDialogBox');
+                box.classList.add('shake-box');
+                document.getElementById('loginErrorMsg').style.display = 'block';
+                setTimeout(() => box.classList.remove('shake-box'), 400);
+            }
+        }
+
+        function closeAdminModal() { 
+            document.getElementById('adminModal').style.display = 'none'; 
+        }
+
+        // التبديل بين تبويبات لوحة التحكم
+        function switchAdminTab(tab) {
+            document.getElementById('tabBtnItems').classList.toggle('active', tab === 'items');
+            document.getElementById('tabBtnOrders').classList.toggle('active', tab === 'orders');
+            document.getElementById('tabBtnPass').classList.toggle('active', tab === 'pass');
+
+            document.getElementById('adminTabItemsView').style.display = (tab === 'items') ? 'block' : 'none';
+            document.getElementById('adminTabOrdersView').style.display = (tab === 'orders') ? 'block' : 'none';
+            document.getElementById('adminTabPassView').style.display = (tab === 'pass') ? 'block' : 'none';
+
+            if (tab === 'orders') renderOrdersList();
+        }
+
+        function updateStoreUI() {
+            const lbl = document.getElementById('storeStatusLabel');
+            const btn = document.getElementById('storeToggleBtn');
+            const box = document.getElementById('storeStatusBox');
+            if (storeOpen) {
+                lbl.innerText = "حالة المطعم الحالية: 🟢 مفتوح واستقبال الطلبات متاح";
+                lbl.style.color = "#1E7E34";
+                box.style.borderColor = "#1E7E34";
+                btn.innerText = "إغلاق المطعم الآن 🔴";
+                btn.style.background = "#C62828";
+            } else {
+                lbl.innerText = "حالة المطعم الحالية: 🔴 مغلق واستقبال الطلبات متوقف";
+                lbl.style.color = "#C62828";
+                box.style.borderColor = "#C62828";
+                btn.innerText = "فتح المطعم الآن 🟢";
+                btn.style.background = "#1E7E34";
+            }
+        }
+
+        function toggleStoreStatus() {
+            db.ref('settings/storeOpen').set(!storeOpen);
+        }
+
+        function renderAdminItems() {
+            const list = document.getElementById('adminItemsList');
+            list.innerHTML = menuData.map(item => {
+                const isOff = disabledItems[item.name] === true;
+                return `
+                <div class="admin-item-row">
+                    <span style="font-weight:700;">${item.name} <small style="color:var(--desc-text); font-size:0.75rem;">(${item.category})</small></span>
+                    <label class="switch">
+                        <input type="checkbox" ${!isOff ? 'checked' : ''} onchange="toggleItemStatus('${item.name}', this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleItemStatus(name, isChecked) {
+            db.ref(`settings/disabledItems/${name}`).set(!isChecked ? true : null);
+        }
+
+        function setAllItems(enable) {
+            if (enable) {
+                db.ref('settings/disabledItems').set({});
+            } else {
+                let allOff = {};
+                menuData.forEach(i => allOff[i.name] = true);
+                db.ref('settings/disabledItems').set(allOff);
+            }
+        }
+
+        // عرض وتنسيق سجل الطلبات
+        function renderOrdersList() {
+            const container = document.getElementById('adminOrdersList');
+            const countBadge = document.getElementById('ordersCountBadge');
+            const keys = Object.keys(ordersData).reverse(); // الأحدث في البداية
+
+            countBadge.innerText = `${keys.length} طلبات مسجلة`;
+
+            if (keys.length === 0) {
+                container.innerHTML = `<p style="text-align: center; color: var(--card-subtext); padding: 30px 0; font-weight: 700;">لا توجد أي طلبات حتى الآن</p>`;
+                return;
+            }
+
+            container.innerHTML = keys.map(key => {
+                const ord = ordersData[key];
+                return `
+                <div class="order-card" id="ord-${key}">
+                    <div class="order-card-header">
+                        <span style="font-weight:800; color:var(--accent); font-size:0.95rem;"><i class="fa-solid fa-bell"></i> طلب #${key.slice(-4)}</span>
+                        <span class="order-time">${ord.date || ''} - ${ord.time || ''}</span>
+                    </div>
+                    <p class="order-details-p"><i class="fa-solid fa-user" style="color:var(--desc-text); width:18px;"></i> <b>الاسم:</b> ${ord.customerName}</p>
+                    <p class="order-details-p"><i class="fa-solid fa-phone" style="color:var(--desc-text); width:18px;"></i> <b>الموبايل:</b> <a href="tel:${ord.phone}" style="color:var(--accent); text-decoration:none;">${ord.phone}</a></p>
+                    <p class="order-details-p"><i class="fa-solid fa-location-dot" style="color:var(--desc-text); width:18px;"></i> <b>العنوان:</b> ${ord.address}</p>
+                    
+                    <div class="order-items-box">
+                        <b>الأصناف المطلوبة:</b><br>
+                        ${ord.items ? ord.items.map(it => `• ${it.name} (${it.price} ج.م)`).join('<br>') : ''}
+                    </div>
+
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                        <span style="font-weight:800;">الإجمالي:</span>
+                        <span class="order-total-price">${ord.total} ج.م</span>
+                    </div>
+
+                    <div class="order-actions">
+                        <button class="order-act-btn" style="background:#25D366; color:#fff;" onclick="window.open('https://wa.me/20${ord.phone}')"><i class="fa-brands fa-whatsapp"></i> مراسلة</button>
+                        <button class="order-act-btn" style="background:rgba(169,35,26,0.12); color:var(--accent);" onclick="deleteSingleOrder('${key}')"><i class="fa-solid fa-trash"></i> حذف</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function deleteSingleOrder(key) {
+            if (confirm("هل تريد حذف هذا الطلب نهائياً من السجل؟")) {
+                db.ref(`orders/${key}`).remove();
+            }
+        }
+
+        function clearAllOrders() {
+            if (confirm("هل أنت متأكد من مسح جميع الطلبات من السجل بالكامل؟")) {
+                db.ref('orders').remove();
+            }
+        }
+
+        // تغيير كلمة السر مع إبطال جلسة باقي الأجهزة فوراً
+        function saveNewPassword() {
+            const cur = document.getElementById('currentPassInput').value.trim();
+            const nw = document.getElementById('newPassInput').value.trim();
+            const cnf = document.getElementById('confirmPassInput').value.trim();
+
+            if (!cur || !nw || !cnf) {
+                return alert("يرجى ملء كافة حقول كلمة السر");
+            }
+            if (cur !== adminPass) {
+                return alert("كلمة السر الحالية غير صحيحة!");
+            }
+            if (nw.length < 4) {
+                return alert("كلمة السر الجديدة يجب أن تكون 4 أحرف أو أرقام على الأقل");
+            }
+            if (nw !== cnf) {
+                return alert("كلمة السر الجديدة وتأكيدها غير متطابقين!");
+            }
+
+            db.ref('settings/adminPass').set(nw).then(() => {
+                adminPass = nw;
+                localStorage.setItem('gedo_owner_session_pass', nw);
+                document.getElementById('currentPassInput').value = '';
+                document.getElementById('newPassInput').value = '';
+                document.getElementById('confirmPassInput').value = '';
+                alert("تم تحديث كلمة السر بنجاح! تم استثناء وإلغاء صلاحية أي أجهزة أخرى مفتوحة تلقائياً.");
+                switchAdminTab('items');
+            });
+        }
+
+        function refreshCurrentCategory() {
+            const activeCatEl = document.querySelector('.cat-item.active');
+            if (activeCatEl) {
+                const catName = activeCatEl.querySelector('span').innerText;
+                filterCat(catName, activeCatEl);
+            }
+        }
 
         function toggleTheme() {
             document.body.classList.toggle('dark-mode');
@@ -412,6 +905,7 @@
 
                 const isFirstCat = (cat === menuData[0]?.category);
                 const imagePath = `${IMAGES_PATH}${item.name}.jpg`;
+                const isUnavailable = (disabledItems[item.name] === true) || !storeOpen;
                 
                 return `
                 <div class="food-card">
@@ -422,7 +916,11 @@
                         <div class="price-row">
                             ${displayPriceHtml}
                             <span class="added-notice">تم الطلب ✔️</span>
-                            ${!isFirstCat ? `<button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>` : ''}
+                            ${!isFirstCat ? (
+                                isUnavailable
+                                ? `<span style="color:var(--accent); font-weight:800; font-size:0.85rem; background:rgba(169,35,26,0.08); padding:5px 10px; border-radius:10px;">${!storeOpen ? 'المطعم مغلق' : 'غير متوفر حالياً'}</span>`
+                                : `<button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>`
+                            ) : ''}
                         </div>
                     </div>
                 </div>
@@ -431,6 +929,9 @@
         }
 
         function handleAddClick(e, btn, isNormal, name, normalP, smallP, medP, bigP) {
+            if (!storeOpen) return alert("المطعم مغلق حالياً عن استقبال الطلبات");
+            if (disabledItems[name]) return alert("هذا الصنف غير متوفر حالياً");
+
             lastClickButton = btn;
             if(isNormal) {
                 executeAddToCart(name, normalP);
@@ -492,17 +993,51 @@
         window.addEventListener('popstate', function (event) {
             const modal = document.getElementById('cartModal');
             const sizeModal = document.getElementById('sizeModal');
-            if (modal.style.display === 'flex') modal.style.display = 'none';
-            if (sizeModal.style.display === 'flex') sizeModal.style.display = 'none';
+            const adminModal = document.getElementById('adminModal');
+            const loginModal = document.getElementById('loginModal');
+            if (modal && modal.style.display === 'flex') modal.style.display = 'none';
+            if (sizeModal && sizeModal.style.display === 'flex') sizeModal.style.display = 'none';
+            if (adminModal && adminModal.style.display === 'flex') adminModal.style.display = 'none';
+            if (loginModal && loginModal.style.display === 'flex') loginModal.style.display = 'none';
         });
 
+        // تأكيد الطلب وحفظه في Firebase وفتحه في WhatsApp
         function sendToWA() {
-            const n = document.getElementById('uName').value, p = document.getElementById('uPhone').value, a = document.getElementById('uAddr').value;
-            if(!n || !p || !a || cart.length === 0) return alert("يرجى إكمال البيانات واختيار الأصناف");
+            if (!storeOpen) return alert("المطعم مغلق حالياً عن استقبال الطلبات");
+            const n = document.getElementById('uName').value.trim();
+            const p = document.getElementById('uPhone').value.trim();
+            const a = document.getElementById('uAddr').value.trim();
+            
+            if(!n || !p || !a || cart.length === 0) {
+                return alert("يرجى إكمال البيانات واختيار الأصناف أولاً");
+            }
+
+            const now = new Date();
+            const orderPayload = {
+                customerName: n,
+                phone: p,
+                address: a,
+                items: cart,
+                total: currentTotal,
+                date: now.toLocaleDateString('ar-EG'),
+                time: now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            // 1. الحفظ المباشر في Firebase Realtime Database بسجل الطلبات
+            db.ref('orders').push(orderPayload);
+
+            // 2. إرسال الطلب عبر واتساب
             let msg = `طلب جديد - جدو نظير\n\n👤 الاسم: ${n}\n📱 الموبايل: ${p}\n📍 العنوان: ${a}\n\nالطلبات:\n` 
                       + cart.map(i => `- ${i.name} (${i.price} ج.م)`).join('\n')
                       + `\n\n💰 الإجمالي: ${currentTotal} ج.م`;
+            
             window.open(`https://wa.me/201069355452?text=${encodeURIComponent(msg)}`);
+
+            // تفريغ السلة وإغلاقها
+            cart = [];
+            updateCart();
+            toggleCart(false);
         }
 
         loadMenu();
