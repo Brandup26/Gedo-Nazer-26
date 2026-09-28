@@ -228,9 +228,7 @@
             border: 2px solid var(--desc-text); display: flex; align-items: center; justify-content: center;
             font-size: 1.9rem; color: var(--accent); box-shadow: 0 8px 20px var(--gold-glow);
         }
-        .login-input-wrap {
-            position: relative; margin: 20px 0 15px 0;
-        }
+        .login-input-wrap { position: relative; margin: 20px 0 15px 0; }
         .login-input {
             width: 100%; padding: 15px 44px 15px 16px; border-radius: 16px;
             border: 1.5px solid var(--card-border); background: var(--bg);
@@ -265,7 +263,7 @@
         .shake-box { animation: shakeError 0.4s ease-in-out; }
         @keyframes shakeError { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 
-        /* رسالة منبثقة تفاعلية على الشاشة لضمان الرؤية الفورية */
+        /* رسالة منبثقة تفاعلية على الشاشة */
         #orderToastAlert {
             position: fixed; top: -120px; left: 15px; right: 15px; z-index: 999999;
             background: linear-gradient(135deg, #1A1412, #2B1E19); color: #fff;
@@ -283,7 +281,7 @@
         <div style="font-size: 1.8rem; color: #E63946;"><i class="fa-solid fa-bell-concierge"></i></div>
         <div style="flex: 1;">
             <b style="font-size: 0.98rem; display: block; color: var(--desc-text);">أوردر جديد - جدو نظير 🛎️</b>
-            <span id="toastOrderText" style="font-size: 0.85rem; opacity: 0.95;">تم طلب أوردر جديد الآن، اضغط هنا لفتحه!</span>
+            <span id="toastOrderText" style="font-size: 0.85rem; opacity: 0.95;">تم طلب أوردر جديد من تطبيق جدو نظير</span>
         </div>
         <i class="fa-solid fa-arrow-left" style="font-size: 1.1rem; color: var(--desc-text);"></i>
     </div>
@@ -464,7 +462,6 @@
     </div>
 
     <script>
-        // إعدادات وتوصيل Firebase Realtime Database
         const firebaseConfig = {
             databaseURL: "https://gedo-nazeer-default-rtdb.europe-west1.firebasedatabase.app"
         };
@@ -481,26 +478,28 @@
         let isInitialLoad = true;
         let swRegistration = null;
 
+        const MAX_FREE_OPENS = 3; // عدد مرات الدخول المباشر قبل طلب الباسورد مرة أخرى
+
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMPmtTzw4PXca6LfoHjkYbEXXF1Q0NQrbsLf0wNowyofnEwFX470aRMiu6O7wpFlK3WFULBOjV4L85/pub?output=csv&_cb=' + Date.now();
         const IMAGES_PATH = "./images/"; 
         let menuData = [], cart = [];
         let currentTotal = 0;
         let lastClickButton = null;
 
-        // تسجيل Service Worker للاستفادة منه في إشعارات النظام
         if ('serviceWorker' in navigator) { 
             navigator.serviceWorker.register('sw.js').then(reg => {
                 swRegistration = reg;
             }).catch(err => console.log('SW Registration failed', err)); 
         }
 
-        // التحقق من صلاحية صاحب المطعم الحالية
         function checkOwnerSession() {
             const savedSessionPass = localStorage.getItem('gedo_owner_session_pass');
             if (savedSessionPass && savedSessionPass === adminPass) {
                 isOwnerSession = true;
             } else {
                 isOwnerSession = false;
+                localStorage.removeItem('gedo_owner_session_pass');
+                localStorage.removeItem('gedo_open_counter');
                 if (document.getElementById('adminModal').style.display === 'flex') {
                     closeAdminModal();
                     alert("تم تغيير كلمة سر الإدارة من جهاز آخر. يرجى إعادة تسجيل الدخول.");
@@ -508,7 +507,6 @@
             }
         }
 
-        // الاستماع الفوري لتغييرات Firebase
         db.ref('settings/storeOpen').on('value', snap => {
             storeOpen = snap.val() !== false;
             updateStoreUI();
@@ -533,13 +531,11 @@
             checkOwnerSession();
         });
 
-        // مراقبة الطلبات الجديدة والتنبيه الصوتي والكتابي
-        db.ref('orders').on('child_added', (snapshot, prevChildKey) => {
-            if (isInitialLoad) return; // عدم التنبيه عند التحميل الأول للصفحة
-            
+        db.ref('orders').on('child_added', (snapshot) => {
+            if (isInitialLoad) return;
             const newOrder = snapshot.val();
             if (isOwnerSession && newOrder) {
-                triggerOwnerAlarm(newOrder);
+                triggerOwnerAlarm();
             }
         });
 
@@ -551,7 +547,6 @@
             }
         });
 
-        // صوت جرس إلكتروني قوي وواضح لمدة ثانيتين (ترن.. ترن.. ترن.. ترن..)
         function playHighBellSound() {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -583,27 +578,21 @@
             }
         }
 
-        // إطلاق التنبيه الصوتي + الرسالة الكتابية للموبايل
-        function triggerOwnerAlarm(order) {
-            // 1. تشغيل صوت الجرس لمدة ثانيتين
+        // التنبيه الصوتي والكتابي بنص رسمي بدون اسم أو سعر
+        function triggerOwnerAlarm() {
             playHighBellSound();
 
-            // 2. هزاز الهاتف
             if ("vibrate" in navigator) {
                 navigator.vibrate([400, 200, 400, 200, 400]);
             }
 
             const title = "طلب جديد - تطبيق جدو نظير 🛎️";
-            const body = `تم طلب أوردر جديد باسم: ${order.customerName || 'عميل'} بقيمة ${order.total || 0} ج.م`;
+            const body = "تم طلب أوردر جديد من تطبيق جدو نظير";
 
-            // 3. إشعار كتابي بنظام الموبايل (System Push Notification)
             showSystemNotification(title, body);
-
-            // 4. رسالة كتابية منبثقة تفاعلية في الشاشة (Toast Banner)
-            showInAppToast(title, body);
+            showInAppToast(body);
         }
 
-        // إظهار إشعار النظام المكتوب المضمون عبر Service Worker
         function showSystemNotification(title, body) {
             if (!("Notification" in window)) return;
 
@@ -635,7 +624,7 @@
             }
         }
 
-        function showInAppToast(title, body) {
+        function showInAppToast(body) {
             const toast = document.getElementById('orderToastAlert');
             const toastTxt = document.getElementById('toastOrderText');
             toastTxt.innerText = body;
@@ -651,19 +640,31 @@
             }
         }
 
+        // منطق الدخول الذكي: 3 مرات مباشرة والمرة الرابعة تطلب الباسورد للأمان
         function handleAdminEntryClick() {
             checkOwnerSession();
-            if (isOwnerSession) {
-                switchAdminTab('items');
-                renderAdminItems();
-                document.getElementById('adminModal').style.display = 'flex';
-                history.pushState({ adminOpen: true }, "");
+            
+            let openCounter = parseInt(localStorage.getItem('gedo_open_counter') || '0', 10);
+
+            if (isOwnerSession && openCounter < MAX_FREE_OPENS) {
+                // دخول مباشر بدون باسورد
+                openCounter += 1;
+                localStorage.setItem('gedo_open_counter', openCounter);
+                openAdminPanelDirectly();
             } else {
+                // إظهار نافذة الباسورد
                 document.getElementById('adminPasswordInput').value = '';
                 document.getElementById('loginErrorMsg').style.display = 'none';
                 document.getElementById('loginModal').style.display = 'flex';
                 setTimeout(() => document.getElementById('adminPasswordInput').focus(), 150);
             }
+        }
+
+        function openAdminPanelDirectly() {
+            switchAdminTab('items');
+            renderAdminItems();
+            document.getElementById('adminModal').style.display = 'flex';
+            history.pushState({ adminOpen: true }, "");
         }
 
         function closeLoginModal() {
@@ -674,13 +675,11 @@
             const val = document.getElementById('adminPasswordInput').value.trim();
             if (val === adminPass) {
                 localStorage.setItem('gedo_owner_session_pass', val);
+                localStorage.setItem('gedo_open_counter', '0'); // تصفير العداد ليعطيه 3 مرات جديدة
                 isOwnerSession = true;
-                requestNotificationPermission(); // تفعيل الإشعارات فوراً عند تسجيل الدخول
+                requestNotificationPermission();
                 closeLoginModal();
-                switchAdminTab('items');
-                renderAdminItems();
-                document.getElementById('adminModal').style.display = 'flex';
-                history.pushState({ adminOpen: true }, "");
+                openAdminPanelDirectly();
             } else {
                 const box = document.getElementById('loginDialogBox');
                 box.classList.add('shake-box');
@@ -757,7 +756,6 @@
             }
         }
 
-        // عرض وتنسيق سجل الطلبات
         function renderOrdersList() {
             const container = document.getElementById('adminOrdersList');
             const countBadge = document.getElementById('ordersCountBadge');
@@ -833,6 +831,7 @@
             db.ref('settings/adminPass').set(nw).then(() => {
                 adminPass = nw;
                 localStorage.setItem('gedo_owner_session_pass', nw);
+                localStorage.setItem('gedo_open_counter', '0');
                 document.getElementById('currentPassInput').value = '';
                 document.getElementById('newPassInput').value = '';
                 document.getElementById('confirmPassInput').value = '';
@@ -1040,7 +1039,7 @@
             else { modal.style.display = 'none'; }
         }
 
-        window.addEventListener('popstate', function (event) {
+        window.addEventListener('popstate', function () {
             const modal = document.getElementById('cartModal');
             const sizeModal = document.getElementById('sizeModal');
             const adminModal = document.getElementById('adminModal');
@@ -1051,7 +1050,6 @@
             if (loginModal && loginModal.style.display === 'flex') loginModal.style.display = 'none';
         });
 
-        // تأكيد الطلب وحفظه في Firebase وفتحه في WhatsApp
         function sendToWA() {
             if (!storeOpen) return alert("المطعم مغلق حالياً عن استقبال الطلبات");
             const n = document.getElementById('uName').value.trim();
@@ -1074,10 +1072,8 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
-            // 1. الحفظ في Firebase وإطلاق التنبيه لصاحب المطعم فوراً
             db.ref('orders').push(orderPayload);
 
-            // 2. إرسال الطلب عبر واتساب
             let msg = `طلب جديد - جدو نظير\n\n👤 الاسم: ${n}\n📱 الموبايل: ${p}\n📍 العنوان: ${a}\n\nالطلبات:\n` 
                       + cart.map(i => `- ${i.name} (${i.price} ج.م)`).join('\n')
                       + `\n\n💰 الإجمالي: ${currentTotal} ج.م`;

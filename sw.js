@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jedo-nazir-v5';
+const CACHE_NAME = 'jedo-nazir-v6';
 
 self.addEventListener('install', (e) => e.waitUntil(self.skipWaiting()));
 
