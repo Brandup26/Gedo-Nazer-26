@@ -264,9 +264,29 @@
 
         .shake-box { animation: shakeError 0.4s ease-in-out; }
         @keyframes shakeError { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+
+        /* رسالة منبثقة تفاعلية على الشاشة لضمان الرؤية الفورية */
+        #orderToastAlert {
+            position: fixed; top: -120px; left: 15px; right: 15px; z-index: 999999;
+            background: linear-gradient(135deg, #1A1412, #2B1E19); color: #fff;
+            border: 2px solid var(--desc-text); border-radius: 20px; padding: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 14px;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #orderToastAlert.active { top: 20px; }
     </style>
 </head>
 <body>
+
+    <!-- رسالة التنبيه الكتابية المنبثقة -->
+    <div id="orderToastAlert" onclick="handleAdminEntryClick()">
+        <div style="font-size: 1.8rem; color: #E63946;"><i class="fa-solid fa-bell-concierge"></i></div>
+        <div style="flex: 1;">
+            <b style="font-size: 0.98rem; display: block; color: var(--desc-text);">أوردر جديد - جدو نظير 🛎️</b>
+            <span id="toastOrderText" style="font-size: 0.85rem; opacity: 0.95;">تم طلب أوردر جديد الآن، اضغط هنا لفتحه!</span>
+        </div>
+        <i class="fa-solid fa-arrow-left" style="font-size: 1.1rem; color: var(--desc-text);"></i>
+    </div>
 
     <div id="splash-screen">
         <div class="loader-content">
@@ -364,7 +384,7 @@
         </div>
     </div>
 
-    <!-- نافذة الدخول الانسيابية للإدارة (Creative Password Modal) -->
+    <!-- نافذة الدخول الانسيابية للإدارة -->
     <div class="modal" id="loginModal" style="align-items: center;" onclick="if(event.target==this) closeLoginModal()">
         <div class="login-dialog" id="loginDialogBox">
             <div class="login-icon-box">
@@ -395,7 +415,7 @@
                 <i class="fa-solid fa-xmark" onclick="closeAdminModal()" style="font-size: 1.5rem; cursor:pointer;"></i>
             </div>
 
-            <!-- أزرار التبويبات الثلاثة -->
+            <!-- أزرار التبويبات -->
             <div style="display:flex; gap:8px; margin-bottom:15px;">
                 <button class="admin-tab-btn active" id="tabBtnItems" onclick="switchAdminTab('items')"><i class="fa-solid fa-box"></i> حالة الأصناف</button>
                 <button class="admin-tab-btn" id="tabBtnOrders" onclick="switchAdminTab('orders')"><i class="fa-solid fa-receipt"></i> سجل الطلبات</button>
@@ -459,12 +479,20 @@
         let isOwnerSession = false;
         let ordersData = {};
         let isInitialLoad = true;
+        let swRegistration = null;
 
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMPmtTzw4PXca6LfoHjkYbEXXF1Q0NQrbsLf0wNowyofnEwFX470aRMiu6O7wpFlK3WFULBOjV4L85/pub?output=csv&_cb=' + Date.now();
         const IMAGES_PATH = "./images/"; 
         let menuData = [], cart = [];
         let currentTotal = 0;
         let lastClickButton = null;
+
+        // تسجيل Service Worker للاستفادة منه في إشعارات النظام
+        if ('serviceWorker' in navigator) { 
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                swRegistration = reg;
+            }).catch(err => console.log('SW Registration failed', err)); 
+        }
 
         // التحقق من صلاحية صاحب المطعم الحالية
         function checkOwnerSession() {
@@ -473,7 +501,6 @@
                 isOwnerSession = true;
             } else {
                 isOwnerSession = false;
-                // إذا تم تغيير كلمة السر من جهاز آخر يتم إخراجه فوراً
                 if (document.getElementById('adminModal').style.display === 'flex') {
                     closeAdminModal();
                     alert("تم تغيير كلمة سر الإدارة من جهاز آخر. يرجى إعادة تسجيل الدخول.");
@@ -507,37 +534,37 @@
         });
 
         // مراقبة الطلبات الجديدة والتنبيه الصوتي والكتابي
-        db.ref('orders').on('value', snap => {
-            ordersData = snap.val() || {};
-            renderOrdersList();
+        db.ref('orders').on('child_added', (snapshot, prevChildKey) => {
+            if (isInitialLoad) return; // عدم التنبيه عند التحميل الأول للصفحة
             
-            // تجاهل التنبيه عند التحميل الأول للصفحة
-            if (isInitialLoad) {
-                isInitialLoad = false;
-                return;
-            }
-
-            // التنبيه لصاحب المطعم فقط
-            if (isOwnerSession) {
-                triggerOwnerAlarm();
+            const newOrder = snapshot.val();
+            if (isOwnerSession && newOrder) {
+                triggerOwnerAlarm(newOrder);
             }
         });
 
-        // تشغيل صوت الجرس العالي المتكرر لمدة ثانيتين
+        db.ref('orders').on('value', snap => {
+            ordersData = snap.val() || {};
+            renderOrdersList();
+            if (isInitialLoad) {
+                setTimeout(() => { isInitialLoad = false; }, 1000);
+            }
+        });
+
+        // صوت جرس إلكتروني قوي وواضح لمدة ثانيتين (ترن.. ترن.. ترن.. ترن..)
         function playHighBellSound() {
             try {
                 const AudioContext = window.AudioContext || window.webkitAudioContext;
                 if (!AudioContext) return;
                 const ctx = new AudioContext();
                 
-                // نغمتين متتاليتين في الثانية الواحدة مكررة لثانيتين (ترن.. ترن.. ترن.. ترن..)
                 const strikes = [0, 0.45, 0.95, 1.4];
                 strikes.forEach(time => {
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(880, ctx.currentTime + time); // جرس واضح A5
+                    osc.frequency.setValueAtTime(880, ctx.currentTime + time);
                     osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + time + 0.08);
                     
                     gain.gain.setValueAtTime(1.0, ctx.currentTime + time);
@@ -550,39 +577,74 @@
                     osc.stop(ctx.currentTime + time + 0.4);
                 });
 
-                // إيقاف السياق الصوتي بعد انتهاء الثانيتين
                 setTimeout(() => { ctx.close(); }, 2100);
             } catch (err) {
                 console.log("Audio alert error: ", err);
             }
         }
 
-        // إطلاق التنبيه الصوتي والرسالة الكتابية
-        function triggerOwnerAlarm() {
-            // 1. صوت الجرس
+        // إطلاق التنبيه الصوتي + الرسالة الكتابية للموبايل
+        function triggerOwnerAlarm(order) {
+            // 1. تشغيل صوت الجرس لمدة ثانيتين
             playHighBellSound();
 
-            // 2. اهتزاز الموبايل
+            // 2. هزاز الهاتف
             if ("vibrate" in navigator) {
                 navigator.vibrate([400, 200, 400, 200, 400]);
             }
 
-            // 3. إشعار كتابي يظهر في شاشة القفل والإشعارات
-            if ("Notification" in window && Notification.permission === "granted") {
-                const notif = new Notification("طلب جديد - جدو نظير 🛎️", {
-                    body: "تم استلام أوردر جديد الآن في تطبيق جدو نظير، تفقد سجل الطلبات!",
-                    icon: "images/lllogo.jpg",
-                    tag: "new-order-" + Date.now(),
-                    requireInteraction: true
+            const title = "طلب جديد - تطبيق جدو نظير 🛎️";
+            const body = `تم طلب أوردر جديد باسم: ${order.customerName || 'عميل'} بقيمة ${order.total || 0} ج.م`;
+
+            // 3. إشعار كتابي بنظام الموبايل (System Push Notification)
+            showSystemNotification(title, body);
+
+            // 4. رسالة كتابية منبثقة تفاعلية في الشاشة (Toast Banner)
+            showInAppToast(title, body);
+        }
+
+        // إظهار إشعار النظام المكتوب المضمون عبر Service Worker
+        function showSystemNotification(title, body) {
+            if (!("Notification" in window)) return;
+
+            if (Notification.permission === "granted") {
+                if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'SHOW_NOTIFICATION',
+                        title: title,
+                        body: body
+                    });
+                } else if (swRegistration && swRegistration.showNotification) {
+                    swRegistration.showNotification(title, {
+                        body: body,
+                        icon: 'images/lllogo.jpg',
+                        badge: 'images/lllogo.jpg',
+                        vibrate: [300, 150, 300, 150, 300],
+                        tag: 'order-notification',
+                        renotify: true
+                    });
+                } else {
+                    new Notification(title, { body: body, icon: "images/lllogo.jpg" });
+                }
+            } else if (Notification.permission !== "denied") {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        showSystemNotification(title, body);
+                    }
                 });
-                notif.onclick = function() {
-                    window.focus();
-                    handleAdminEntryClick();
-                };
             }
         }
 
-        // طلب إذن الإشعارات
+        function showInAppToast(title, body) {
+            const toast = document.getElementById('orderToastAlert');
+            const toastTxt = document.getElementById('toastOrderText');
+            toastTxt.innerText = body;
+            toast.classList.add('active');
+            setTimeout(() => {
+                toast.classList.remove('active');
+            }, 6000);
+        }
+
         function requestNotificationPermission() {
             if ("Notification" in window && Notification.permission !== "granted") {
                 Notification.requestPermission();
@@ -613,7 +675,7 @@
             if (val === adminPass) {
                 localStorage.setItem('gedo_owner_session_pass', val);
                 isOwnerSession = true;
-                requestNotificationPermission();
+                requestNotificationPermission(); // تفعيل الإشعارات فوراً عند تسجيل الدخول
                 closeLoginModal();
                 switchAdminTab('items');
                 renderAdminItems();
@@ -631,7 +693,6 @@
             document.getElementById('adminModal').style.display = 'none'; 
         }
 
-        // التبديل بين تبويبات لوحة التحكم
         function switchAdminTab(tab) {
             document.getElementById('tabBtnItems').classList.toggle('active', tab === 'items');
             document.getElementById('tabBtnOrders').classList.toggle('active', tab === 'orders');
@@ -700,7 +761,7 @@
         function renderOrdersList() {
             const container = document.getElementById('adminOrdersList');
             const countBadge = document.getElementById('ordersCountBadge');
-            const keys = Object.keys(ordersData).reverse(); // الأحدث في البداية
+            const keys = Object.keys(ordersData).reverse();
 
             countBadge.innerText = `${keys.length} طلبات مسجلة`;
 
@@ -751,7 +812,6 @@
             }
         }
 
-        // تغيير كلمة السر مع إبطال جلسة باقي الأجهزة فوراً
         function saveNewPassword() {
             const cur = document.getElementById('currentPassInput').value.trim();
             const nw = document.getElementById('newPassInput').value.trim();
@@ -864,16 +924,6 @@
                 startSplashAnimation(() => {
                     document.getElementById('splash-screen').classList.add('splash-hidden');
                     checkIosPrompt();
-                    if ('serviceWorker' in navigator) { 
-                        navigator.serviceWorker.register('sw.js').then(reg => {
-                            reg.addEventListener('updatefound', () => {
-                                const newWorker = reg.installing;
-                                newWorker.addEventListener('statechange', () => {
-                                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) { window.location.reload(); }
-                                });
-                            });
-                        }).catch(err => console.log(err)); 
-                    }
                 });
             } catch (e) { document.getElementById('splash-screen').classList.add('splash-hidden'); }
         }
@@ -1024,7 +1074,7 @@
                 timestamp: firebase.database.ServerValue.TIMESTAMP
             };
 
-            // 1. الحفظ المباشر في Firebase Realtime Database بسجل الطلبات
+            // 1. الحفظ في Firebase وإطلاق التنبيه لصاحب المطعم فوراً
             db.ref('orders').push(orderPayload);
 
             // 2. إرسال الطلب عبر واتساب
@@ -1034,7 +1084,6 @@
             
             window.open(`https://wa.me/201069355452?text=${encodeURIComponent(msg)}`);
 
-            // تفريغ السلة وإغلاقها
             cart = [];
             updateCart();
             toggleCart(false);
