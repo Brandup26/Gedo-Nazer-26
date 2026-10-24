@@ -480,7 +480,9 @@
 
         const MAX_FREE_OPENS = 3; 
 
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbSX3j7NWOfBsiy47jcPT8VTFpmzbRWuv21MzuX2Wrb_rPGqat-KVSUF_qZLuZlJDXW63AP2vLQvxm/pub?output=csv&_cb=' + Date.now();
+        // تم تحديث رابط الشيت ليطلب بيانات محدثة لحظياً وبدون تخزين كاش قديم
+        const baseUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbSX3j7NWOfBsiy47jcPT8VTFpmzbRWuv21MzuX2Wrb_rPGqat-KVSUF_qZLuZlJDXW63AP2vLQvxm/pub?output=csv';
+        
         const IMAGES_PATH = "./images/"; 
         let menuData = [], cart = [];
         let currentTotal = 0;
@@ -896,7 +898,18 @@
 
         async function loadMenu() {
             try {
-                const response = await fetch(csvUrl, { cache: "no-store" });
+                // إضافة متغير عشوائي يتغير كل مللي ثانية لمنع الكاش تماماً وقراءة الشيت فوراً
+                const dynamicCsvUrl = baseUrl + '&_t=' + Date.now();
+                
+                const response = await fetch(dynamicCsvUrl, { 
+                    cache: "no-store",
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                
                 const data = await response.text();
                 const lines = data.split('\n');
                 menuData = [];
