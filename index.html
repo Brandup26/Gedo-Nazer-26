@@ -480,9 +480,8 @@
 
         const MAX_FREE_OPENS = 3; 
 
-        // تم تحديث رابط الشيت ليطلب بيانات محدثة لحظياً وبدون تخزين كاش قديم
-        const baseUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbSX3j7NWOfBsiy47jcPT8VTFpmzbRWuv21MzuX2Wrb_rPGqat-KVSUF_qZLuZlJDXW63AP2vLQvxm/pub?output=csv';
-        
+        // تم إضافة خاصية منع الكاش (Cache-Busting) هنا لضمان جلب التعديلات لحظياً وفورياً وبدون أي تأخير
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbSX3j7NWOfBsiy47jcPT8VTFpmzbRWuv21MzuX2Wrb_rPGqat-KVSUF_qZLuZlJDXW63AP2vLQvxm/pub?output=csv&timestamp=' + new Date().getTime();
         const IMAGES_PATH = "./images/"; 
         let menuData = [], cart = [];
         let currentTotal = 0;
@@ -898,18 +897,8 @@
 
         async function loadMenu() {
             try {
-                // إضافة متغير عشوائي يتغير كل مللي ثانية لمنع الكاش تماماً وقراءة الشيت فوراً
-                const dynamicCsvUrl = baseUrl + '&_t=' + Date.now();
-                
-                const response = await fetch(dynamicCsvUrl, { 
-                    cache: "no-store",
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                });
-                
+                // استخدام رأس الطلب لمنع الكاش نهائياً وجلب أحدث بيانات الشيت فوراً
+                const response = await fetch(csvUrl, { cache: "no-store", headers: { "Pragma": "no-cache", "Cache-Control": "no-cache" } });
                 const data = await response.text();
                 const lines = data.split('\n');
                 menuData = [];
