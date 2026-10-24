@@ -478,9 +478,10 @@
         let isInitialLoad = true;
         let swRegistration = null;
 
-        const MAX_FREE_OPENS = 3; // عدد مرات الدخول المباشر قبل طلب الباسورد مرة أخرى
+        const MAX_FREE_OPENS = 3; 
 
-        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMPmtTzw4PXca6LfoHjkYbEXXF1Q0NQrbsLf0wNowyofnEwFX470aRMiu6O7wpFlK3WFULBOjV4L85/pub?output=csv&_cb=' + Date.now();
+        // رابط الشيت الجديد المربوط
+        const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbSX3j7NWOfBsiy47jcPT8VTFpmzbRWuv21MzuX2Wrb_rPGqat-KVSUF_qZLuZlJDXW63AP2vLQvxm/pub?output=csv&_cb=' + Date.now();
         const IMAGES_PATH = "./images/"; 
         let menuData = [], cart = [];
         let currentTotal = 0;
@@ -578,7 +579,6 @@
             }
         }
 
-        // التنبيه الصوتي والكتابي بنص رسمي بدون اسم أو سعر
         function triggerOwnerAlarm() {
             playHighBellSound();
 
@@ -640,19 +640,16 @@
             }
         }
 
-        // منطق الدخول الذكي: 3 مرات مباشرة والمرة الرابعة تطلب الباسورد للأمان
         function handleAdminEntryClick() {
             checkOwnerSession();
             
             let openCounter = parseInt(localStorage.getItem('gedo_open_counter') || '0', 10);
 
             if (isOwnerSession && openCounter < MAX_FREE_OPENS) {
-                // دخول مباشر بدون باسورد
                 openCounter += 1;
                 localStorage.setItem('gedo_open_counter', openCounter);
                 openAdminPanelDirectly();
             } else {
-                // إظهار نافذة الباسورد
                 document.getElementById('adminPasswordInput').value = '';
                 document.getElementById('loginErrorMsg').style.display = 'none';
                 document.getElementById('loginModal').style.display = 'flex';
@@ -675,7 +672,7 @@
             const val = document.getElementById('adminPasswordInput').value.trim();
             if (val === adminPass) {
                 localStorage.setItem('gedo_owner_session_pass', val);
-                localStorage.setItem('gedo_open_counter', '0'); // تصفير العداد ليعطيه 3 مرات جديدة
+                localStorage.setItem('gedo_open_counter', '0'); 
                 isOwnerSession = true;
                 requestNotificationPermission();
                 closeLoginModal();
