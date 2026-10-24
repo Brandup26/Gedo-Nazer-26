@@ -480,7 +480,6 @@
 
         const MAX_FREE_OPENS = 3; 
 
-        // رابط الشيت الجديد المربوط
         const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRbSX3j7NWOfBsiy47jcPT8VTFpmzbRWuv21MzuX2Wrb_rPGqat-KVSUF_qZLuZlJDXW63AP2vLQvxm/pub?output=csv&_cb=' + Date.now();
         const IMAGES_PATH = "./images/"; 
         let menuData = [], cart = [];
@@ -949,7 +948,6 @@
                         ${item.priceSmall ? `<span class="food-price" style="font-size:0.88rem; color:var(--card-subtext)">صغير: ${item.priceSmall} ج.م</span>` : ''}
                     </div>`;
 
-                const isFirstCat = (cat === menuData[0]?.category);
                 const imagePath = `${IMAGES_PATH}${item.name}.jpg`;
                 const isUnavailable = (disabledItems[item.name] === true) || !storeOpen;
                 
@@ -962,11 +960,11 @@
                         <div class="price-row">
                             ${displayPriceHtml}
                             <span class="added-notice">تم الطلب ✔️</span>
-                            ${!isFirstCat ? (
+                            ${
                                 isUnavailable
                                 ? `<span style="color:var(--accent); font-weight:800; font-size:0.85rem; background:rgba(169,35,26,0.08); padding:5px 10px; border-radius:10px;">${!storeOpen ? 'المطعم مغلق' : 'غير متوفر حالياً'}</span>`
                                 : `<button class="add-btn" onclick="handleAddClick(event, this, ${item.priceNormal ? true : false}, '${item.name}', '${item.priceNormal}', '${item.priceSmall}', '${item.priceMedium}', '${item.priceBig}')">+</button>`
-                            ) : ''}
+                            }
                         </div>
                     </div>
                 </div>
